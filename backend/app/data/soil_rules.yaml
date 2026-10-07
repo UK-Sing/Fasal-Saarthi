@@ -1,0 +1,9 @@
+# Soil Health Card style classes. VERIFY thresholds against the official SHC / ICAR documents.
+nutrients:   # [low_below, high_above]
+  oc: [0.5, 0.75]
+  n:  [280, 560]
+  p:  [10, 25]
+  k:  [108, 280]
+weights: {oc: 3, n: 2, p: 2, k: 2, ph: 2, ec: 1}
+class_score: {low: 25, medium: 60, high: 90, good: 90, watch: 55, poor: 20}
+micro_deficient_below: {s: 10, zn: 0.6, fe: 4.5, cu: 0.2, mn: 2.0, b: 0.5}

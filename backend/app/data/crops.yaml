@@ -1,0 +1,14 @@
+# !!! PLACEHOLDER VALUES for the demo. Validate every number with an agronomist /
+# ICAR / state agri-dept package-of-practices before any real recommendation.
+families:
+  cereal:  {max_consecutive: 2}
+  oilseed: {max_consecutive: 1}
+  legume:  {max_consecutive: 1}
+fallow_soil_gain: 1
+crops:
+  rice:     {family: cereal,  seasons: [kharif],       yield_q_per_acre: 22,  price_inr_per_q: 2300, cost_inr_per_acre: 28000, water_mm: 1200, soil_delta: -2, risk: 0.30, residue: heavy, agmarknet_name: "Paddy(Dhan)(Common)"}
+  wheat:    {family: cereal,  seasons: [rabi],         yield_q_per_acre: 18,  price_inr_per_q: 2275, cost_inr_per_acre: 17000, water_mm: 450,  soil_delta: -2, risk: 0.15, residue: heavy, agmarknet_name: "Wheat"}
+  maize:    {family: cereal,  seasons: [kharif, zaid], yield_q_per_acre: 22,  price_inr_per_q: 2090, cost_inr_per_acre: 20000, water_mm: 550,  soil_delta: -2, risk: 0.25, residue: heavy, agmarknet_name: "Maize"}
+  mustard:  {family: oilseed, seasons: [rabi],         yield_q_per_acre: 7,   price_inr_per_q: 5650, cost_inr_per_acre: 13000, water_mm: 250,  soil_delta: -1, risk: 0.25, residue: light, agmarknet_name: "Mustard"}
+  chickpea: {family: legume,  seasons: [rabi],         yield_q_per_acre: 7,   price_inr_per_q: 5440, cost_inr_per_acre: 11000, water_mm: 200,  soil_delta: 4,  risk: 0.30, residue: light, agmarknet_name: "Bengal Gram(Gram)(Whole)"}
+  moong:    {family: legume,  seasons: [kharif, zaid], yield_q_per_acre: 3.5, price_inr_per_q: 8000, cost_inr_per_acre: 9000,  water_mm: 300,  soil_delta: 4,  risk: 0.35, residue: light, agmarknet_name: "Green Gram (Moong)(Whole)"}

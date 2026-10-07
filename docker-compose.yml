@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment: { POSTGRES_USER: fasal, POSTGRES_PASSWORD: fasal, POSTGRES_DB: fasal }
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+  api:
+    build: ./backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://fasal:fasal@db:5432/fasal
+    ports: ["8000:8000"]
+    depends_on: [db]
+volumes:
+  pgdata:
