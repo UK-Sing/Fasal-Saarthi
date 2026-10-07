@@ -110,7 +110,9 @@ Smoke-test the real project (creates a farm named "SMOKE TEST" and always delete
 Invalid input (unknown crop, bad soil values, unknown residue action, non-positive price) returns 422; unknown `farm_id` returns 404.
 If `API_KEY` is set in `.env`, send `X-API-Key: <value>` on every call except `/health` (Swagger has an Authorize button). Leave it empty on a local laptop demo.
 
-**How the planner behaves (for the pitch).** Plans: A maximises profit with a loose soil floor (30); B balances profit and soil and must end with soil index >= 52, with extra soil weight when the farm is below 50; C must improve the soil by >= 4 points. Rotation rules: no crop repeated back-to-back (including the previous crop), at most 2 consecutive cereal seasons and 1 oilseed/legume season (the previous crop counts). Crops that exceed the season's water (irrigation + effective rain when live data is on) or the season budget are excluded. In the scripted demo: the mustard price crash changes A and B, and recording a burn (soil -3) changes the balanced plan's next-season crop from mustard to chickpea.
+### How the planner behaves (for the pitch)
+
+Plans: A maximises profit with a loose soil floor (30); B balances profit and soil and must end with soil index >= 52, with extra soil weight when the farm is below 50; C must improve the soil by >= 4 points. Rotation rules: no crop repeated back-to-back (including the previous crop), at most 2 consecutive cereal seasons and 1 oilseed/legume season (the previous crop counts). Crops that exceed the season's water (irrigation + effective rain when live data is on) or the season budget are excluded. In the scripted demo: the mustard price crash changes A and B, and recording a burn (soil -3) changes the balanced plan's next-season crop from mustard to chickpea.
 
 ## 5. Keys and accounts to obtain
 
@@ -125,15 +127,18 @@ Set `USE_LIVE_DATA=true` only after testing; keep it `false` for the safest live
 
 ## 6. Things to source from GitHub / other git bases / data portals
 
-**Hackathon-provided (ask the organizers at the boot camp)**
+### Hackathon-provided (ask the organizers at the boot camp)
+
 - GI-AI4AFS Open Reference Architecture repo and the datasets/APIs/GitHub resources promised in the toolkit. I don't have the repo URL, so get it from your selection email or boot camp. Then write an adapter in `backend/app/adapters/` mapping your endpoints to theirs.
 
-**Installed as dependencies (no cloning)**
+### Installed as dependencies (no cloning)
+
 - `ortools` (github.com/google/or-tools), the solver
 - `fastapi`, `sqlmodel`, `pydantic-settings`, `httpx`, `psycopg`
 - Next.js, `shadcn/ui` (github.com/shadcn-ui/ui), `recharts`, `leaflet` + `react-leaflet`
 
-**Clone / pull when you reach that feature**
+### Clone / pull when you reach that feature
+
 
 | Item | Repo or source | Use |
 | --- | --- | --- |
@@ -146,7 +151,8 @@ Set `USE_LIVE_DATA=true` only after testing; keep it `false` for the safest live
 | PCSE / WOFOST (v2) | github.com/ajwdewit/pcse | crop growth model for yield estimates |
 | Langfuse (optional) | github.com/langfuse/langfuse | LLM tracing and audit trail |
 
-**Non-git data you must source manually (this is where correctness lives)**
+### Non-git data you must source manually (this is where correctness lives)
+
 
 | Data | Source | Goes into |
 | --- | --- | --- |
@@ -166,7 +172,7 @@ Before you vendor any repo, check its license and last-commit date. Prefer `uv a
 3. Fertilizer module uses general RDFs x soil-class factor (low 1.25 / medium 1.0 / high 0.75), DAP-first product split. Replace with state package-of-practices / STCR equations. S, Fe, Cu, Mn, B deficiencies are flagged, not dosed. Fertilizer cost is already inside `cost_inr_per_acre`; the fertilizer endpoint's cost is indicative only.
 4. Weather -> water uses a 5-year mean seasonal rainfall x `effective_rain_fraction` (0.5, placeholder) added to irrigation water, only in live mode. The 7-day forecast only produces warnings.
 5. Auth is a single shared API key (optional) and there are no per-user accounts — any holder of the API key can read/write every farm. The DB is a shared Firestore project (or local SQLite), not multi-tenant. No Bhashini voice, and no pre-built UI pages. Only the typed API client is provided (`frontend_starter/lib/api.ts`; re-copy it into `frontend/src/lib/api.ts`).
-5. The Agmarknet resource id and commodity names in `market.py` / `crops.yaml` need checking against the live portal.
+6. The Agmarknet resource id and commodity names in `market.py` / `crops.yaml` need checking against the live portal.
 
 ## 8. Troubleshooting
 
