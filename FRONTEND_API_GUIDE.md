@@ -5,7 +5,7 @@ Everything the UI needs to talk to the API. All examples below are real response
 ## 1. Connecting
 
 | Item | Value |
-|---|---|
+| --- | --- |
 | Base URL (local) | `http://localhost:8000` (env `NEXT_PUBLIC_API_URL`) |
 | Interactive docs | `http://localhost:8000/docs` (Swagger, try every endpoint live) |
 | OpenAPI schema | `http://localhost:8000/openapi.json` |
@@ -222,7 +222,7 @@ Both lists are oldest-first; `created_at` is ISO-8601 UTC. This is the "farm mem
 ## 5. Errors
 
 | Status | When | Body |
-|---|---|---|
+| --- | --- | --- |
 | 404 | unknown `farm_id` | `{"detail": "farm not found"}` |
 | 422 | invalid input (unknown crop, pH > 14, area ≤ 0, price ≤ 0, horizon outside 2–9, bad residue action, …) | FastAPI format: `{"detail": [{"loc": ["body","crop"], "msg": "Value error, unknown crop 'banana'; use one of [...]", "type": "value_error", ...}]}` |
 | 401 | `API_KEY` set and header missing/wrong | `{"detail": "missing or invalid X-API-Key"}` |

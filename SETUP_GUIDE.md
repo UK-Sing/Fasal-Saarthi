@@ -4,7 +4,7 @@ Event: 8-9 Oct 2026, NASC Complex, ICAR, New Delhi. This repo is the API-first p
 
 ## 1. What's in the scaffold
 
-```
+```text
 fasal-sarthi/
 ├── SETUP_GUIDE.md
 ├── docker-compose.yml        # Postgres + API (optional; SQLite works out of the box)
@@ -78,7 +78,7 @@ Persistence goes through a repository layer (`backend/app/repositories/`); the b
 
 Firestore Security Rules (set in the console; no CLI needed): deny all client access — the Admin SDK bypasses rules anyway:
 
-```
+```text
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -97,7 +97,7 @@ Smoke-test the real project (creates a farm named "SMOKE TEST" and always delete
 ## 4. API cheat sheet (matches the concept doc; map to GI-AI4AFS at the boot camp)
 
 | Endpoint | Purpose |
-|---|---|
+| --- | --- |
 | `POST /farm/profile` | create/update farm (send `farm_id` to update; passing `soil` computes the soil index) |
 | `POST /soil/assessment` | classify 12 SHC-style parameters, return soil index + deficiencies |
 | `POST /plan/generate` | 3 multi-season plans + explanations + next-season fertilizer; accepts `price_overrides` for scenarios; stored as a plan version |
@@ -115,7 +115,7 @@ If `API_KEY` is set in `.env`, send `X-API-Key: <value>` on every call except `/
 ## 5. Keys and accounts to obtain
 
 | Need | Where | Required? |
-|---|---|---|
+| --- | --- | --- |
 | data.gov.in API key (Agmarknet mandi prices) | register at data.gov.in, My Account, API key | Optional; falls back to config prices |
 | LLM for explanations | Groq / Gemini free tier, or local Ollama | Optional; template fallback |
 | Bhashini credentials (ASR / translation / TTS) | register on the Bhashini portal (bhashini.gov.in) | Optional, for voice/local language |
@@ -136,7 +136,7 @@ Set `USE_LIVE_DATA=true` only after testing; keep it `false` for the safest live
 **Clone / pull when you reach that feature**
 
 | Item | Repo or source | Use |
-|---|---|---|
+| --- | --- | --- |
 | Ollama | github.com/ollama/ollama (pacman package) | local explanation LLM |
 | IndicTrans2 | github.com/AI4Bharat/IndicTrans2 (models on Hugging Face) | offline English <-> Indian-language translation if Bhashini is unavailable |
 | faster-whisper | github.com/SYSTRAN/faster-whisper | speech-to-text fallback |
@@ -149,7 +149,7 @@ Set `USE_LIVE_DATA=true` only after testing; keep it `false` for the safest live
 **Non-git data you must source manually (this is where correctness lives)**
 
 | Data | Source | Goes into |
-|---|---|---|
+| --- | --- | --- |
 | Crop yields, costs, water needs, duration | ICAR / state agriculture university package of practices, KVK, agronomist | `app/data/crops.yaml` |
 | Fertilizer dose tables (the fertilizer module is NOT built yet) | state agri-department / ICAR recommended doses | new `data/fertilizer_doses.yaml`, rule-based only |
 | Soil Health Card class thresholds | official SHC documentation (soilhealth.dac.gov.in) | `app/data/soil_rules.yaml` (verify mine) |
