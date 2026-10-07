@@ -1,14 +1,28 @@
-# !!! PLACEHOLDER VALUES for the demo. Validate every number with an agronomist /
-# ICAR / state agri-dept package-of-practices before any real recommendation.
+# !!! PLACEHOLDER VALUES for the demo (yield, cost, water, soil_delta, risk). Validate every number
+# with an agronomist / ICAR / state agri-dept package-of-practices before any real recommendation.
+#
+# price_inr_per_q = Govt of India Minimum Support Price (verified on PIB, Oct 2026):
+#   kharif crops (rice=paddy common, maize, moong): Kharif Marketing Season 2026-27, PIB 13 May 2026
+#   rabi crops (wheat, mustard=rapeseed & mustard, chickpea=gram): Rabi Marketing Season 2027-28,
+#   PIB 30 Sep 2026 (PRID 2316941) -> the crop sown this rabi is sold in RMS 2027-28.
+# MSP is a floor price, not a forecast of the mandi price. Use price_overrides / live Agmarknet for scenarios.
 families:
   cereal:  {max_consecutive: 2}
   oilseed: {max_consecutive: 1}
   legume:  {max_consecutive: 1}
 fallow_soil_gain: 1
+# Weather -> water (used only when USE_LIVE_DATA=true and the farm has lat/lon).
+# Share of seasonal rainfall assumed usable by the crop. PLACEHOLDER: validate locally.
+effective_rain_fraction: 0.5
+# Months of each season, used to sum historical rainfall into a seasonal climatology.
+season_months:
+  kharif: [6, 7, 8, 9, 10]
+  rabi:   [11, 12, 1, 2, 3]
+  zaid:   [4, 5]
 crops:
-  rice:     {family: cereal,  seasons: [kharif],       yield_q_per_acre: 22,  price_inr_per_q: 2300, cost_inr_per_acre: 28000, water_mm: 1200, soil_delta: -2, risk: 0.30, residue: heavy, agmarknet_name: "Paddy(Dhan)(Common)"}
-  wheat:    {family: cereal,  seasons: [rabi],         yield_q_per_acre: 18,  price_inr_per_q: 2275, cost_inr_per_acre: 17000, water_mm: 450,  soil_delta: -2, risk: 0.15, residue: heavy, agmarknet_name: "Wheat"}
-  maize:    {family: cereal,  seasons: [kharif, zaid], yield_q_per_acre: 22,  price_inr_per_q: 2090, cost_inr_per_acre: 20000, water_mm: 550,  soil_delta: -2, risk: 0.25, residue: heavy, agmarknet_name: "Maize"}
-  mustard:  {family: oilseed, seasons: [rabi],         yield_q_per_acre: 7,   price_inr_per_q: 5650, cost_inr_per_acre: 13000, water_mm: 250,  soil_delta: -1, risk: 0.25, residue: light, agmarknet_name: "Mustard"}
-  chickpea: {family: legume,  seasons: [rabi],         yield_q_per_acre: 7,   price_inr_per_q: 5440, cost_inr_per_acre: 11000, water_mm: 200,  soil_delta: 4,  risk: 0.30, residue: light, agmarknet_name: "Bengal Gram(Gram)(Whole)"}
-  moong:    {family: legume,  seasons: [kharif, zaid], yield_q_per_acre: 3.5, price_inr_per_q: 8000, cost_inr_per_acre: 9000,  water_mm: 300,  soil_delta: 4,  risk: 0.35, residue: light, agmarknet_name: "Green Gram (Moong)(Whole)"}
+  rice:     {family: cereal,  seasons: [kharif],       yield_q_per_acre: 22,  price_inr_per_q: 2441, cost_inr_per_acre: 28000, water_mm: 1200, soil_delta: -2, risk: 0.20, residue: heavy, agmarknet_name: "Paddy(Dhan)(Common)"}
+  wheat:    {family: cereal,  seasons: [rabi],         yield_q_per_acre: 19,  price_inr_per_q: 2610, cost_inr_per_acre: 17000, water_mm: 450,  soil_delta: -2, risk: 0.10, residue: heavy, agmarknet_name: "Wheat"}
+  maize:    {family: cereal,  seasons: [kharif, zaid], yield_q_per_acre: 20,  price_inr_per_q: 2410, cost_inr_per_acre: 20000, water_mm: 550,  soil_delta: -2, risk: 0.30, residue: heavy, agmarknet_name: "Maize"}
+  mustard:  {family: oilseed, seasons: [rabi],         yield_q_per_acre: 7,   price_inr_per_q: 6613, cost_inr_per_acre: 13000, water_mm: 250,  soil_delta: -1, risk: 0.25, residue: light, agmarknet_name: "Mustard"}
+  chickpea: {family: legume,  seasons: [rabi],         yield_q_per_acre: 7,   price_inr_per_q: 5958, cost_inr_per_acre: 11000, water_mm: 200,  soil_delta: 4,  risk: 0.30, residue: light, agmarknet_name: "Bengal Gram(Gram)(Whole)"}
+  moong:    {family: legume,  seasons: [kharif, zaid], yield_q_per_acre: 3.5, price_inr_per_q: 8780, cost_inr_per_acre: 9000,  water_mm: 300,  soil_delta: 4,  risk: 0.35, residue: light, agmarknet_name: "Green Gram (Moong)(Whole)"}

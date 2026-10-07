@@ -1,0 +1,27 @@
+# Rule-based fertilizer module. NO LLM is involved in doses.
+# !!! PLACEHOLDER / GENERAL figures. Replace with the state agri-department or ICAR / SAU
+# package-of-practices (or STCR equations) for the target district, and get agronomist sign-off.
+#
+# Recommended dose of fertilizer (RDF), kg nutrient per hectare: [N, P2O5, K2O].
+# These are commonly cited general irrigated RDFs, not district-specific recommendations.
+rdf_kg_per_ha:
+  rice:     [120, 60, 40]
+  wheat:    [120, 60, 40]
+  maize:    [120, 60, 40]
+  mustard:  [80, 40, 40]
+  chickpea: [20, 40, 20]   # N is a starter dose only (legume)
+  moong:    [20, 40, 20]   # N is a starter dose only (legume)
+# Legumes fix N: their starter N is not scaled by the soil-test N class.
+no_n_adjust: [chickpea, moong]
+# General soil-test-based adjustment of the RDF by Soil Health Card class (low/medium/high).
+soil_class_factor: {low: 1.25, medium: 1.0, high: 0.75}
+# Fertilizer products. nutrient fractions by weight; bag sizes in kg; price = indicative MRP per bag (verify).
+products:
+  urea: {label: "Urea (46% N)",            n: 0.46, p2o5: 0.0,  k2o: 0.0, bag_kg: 45, price_inr_per_bag: 266.5}
+  dap:  {label: "DAP (18% N, 46% P2O5)",   n: 0.18, p2o5: 0.46, k2o: 0.0, bag_kg: 50, price_inr_per_bag: 1350}
+  mop:  {label: "MOP (60% K2O)",           n: 0.0,  p2o5: 0.0,  k2o: 0.60, bag_kg: 50, price_inr_per_bag: 1700}
+# Micronutrient corrections applied only when the soil test shows a deficiency.
+micronutrients:
+  zn: {product: "Zinc sulphate heptahydrate (21% Zn)", kg_per_ha: 25}
+# Deficiencies that are flagged for expert advice instead of auto-dosing.
+flag_only: [s, fe, cu, mn, b]

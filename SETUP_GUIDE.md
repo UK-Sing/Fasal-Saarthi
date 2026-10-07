@@ -12,14 +12,17 @@ fasal-sarthi/
 ├── scripts/
 │   ├── setup.fish            # one-shot setup (fish shell)
 │   └── demo.py               # rehearses the 3-minute demo against the API
-├── backend/                  # FastAPI + OR-Tools (tested: 3 tests pass, demo runs end to end)
-│   ├── app/main.py           # the 7 endpoints from the concept doc + /health
+├── backend/                  # FastAPI + OR-Tools (uv run pytest -q: 26 tests + Firestore smoke test, demo runs end to end)
+│   ├── app/main.py           # the 7 endpoints from the concept doc + /fertilizer/recommendation + /health
 │   ├── app/planner.py        # CP-SAT multi-season optimizer (Plans A / B / C)
 │   ├── app/soil.py           # Soil Health Card style classification -> soil index
+│   ├── app/fertilizer.py     # rule-based N/P/K + Zn doses -> urea/DAP/MOP bags (no LLM)
 │   ├── app/residue.py        # residue option ranking (incl. burn)
 │   ├── app/explain.py        # template explanation, optional LLM rephrase
-│   ├── app/adapters/         # market.py (Agmarknet), weather.py (Open-Meteo)
-│   └── app/data/*.yaml       # crop, residue and soil rules (PLACEHOLDER numbers)
+│   ├── app/adapters/         # market.py (Agmarknet), weather.py (Open-Meteo forecast + rain climatology)
+│   ├── app/repositories/     # persistence: Firestore / SQLite / in-memory behind one interface
+│   ├── app/data/*.yaml       # crop (MSP prices), residue, soil and fertilizer rules (PLACEHOLDER agronomy)
+│   └── tests/                # planner/fertilizer unit tests + full API flow tests
 └── frontend_starter/lib/api.ts   # typed API client, copied into the Next.js app
 ```
 
@@ -58,17 +61,56 @@ cd frontend; pnpm dev                # http://localhost:3000
 
 Optional Postgres: `docker compose up -d db`, then set `DATABASE_URL=postgresql+psycopg://fasal:fasal@localhost:5432/fasal` in `.env`. Full stack in containers: `docker compose up --build`.
 
+## 3a. Database: Firestore (default) / SQLite fallback
+
+Persistence goes through a repository layer (`backend/app/repositories/`); the backend is chosen by `DATABASE_BACKEND` in `.env`:
+
+- `DATABASE_BACKEND=firestore` (default): Google Cloud Firestore via the Admin SDK. Set:
+  - `FIREBASE_PROJECT_ID=fasal-saarthi` (your Firebase project id)
+  - `FIREBASE_CREDENTIALS=/path/to/firebase-service-account.json` — a service-account key downloaded from
+    Firebase console -> Project settings -> Service accounts. Keep it outside the repo (e.g. `~/.config/fasal-sarthi/`); it is gitignored by pattern but never commit it.
+  - Data layout: `farms/{id}` holds `{profile, created_at, updated_at}`; `farms/{id}/plans/{auto}` and
+    `farms/{id}/outcomes/{auto}` hold history. Farm ids are Firestore auto-ids (opaque strings).
+- `DATABASE_BACKEND=sqlite`: offline fallback using `DATABASE_URL` (default `sqlite:///./fasal.db`, also accepts
+  `postgresql+psycopg://...`). No internet or credentials needed. If Firestore init fails at startup, the API
+  refuses to boot and prints the one-line fallback instruction.
+- `DATABASE_BACKEND=memory`: in-memory, used by the test suite (`tests/conftest.py`).
+
+Firestore Security Rules (set in the console; no CLI needed): deny all client access — the Admin SDK bypasses rules anyway:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} { allow read, write: if false; }
+  }
+}
+```
+
+Docker: mount the key read-only and point at it, e.g.
+`-v ~/.config/fasal-sarthi/firebase-service-account.json:/secrets/firebase.json:ro` plus
+`FIREBASE_CREDENTIALS=/secrets/firebase.json`.
+
+Smoke-test the real project (creates a farm named "SMOKE TEST" and always deletes it):
+`cd backend && FIREBASE_SMOKE=1 uv run pytest -q tests/test_firestore_smoke.py -s`
+
 ## 4. API cheat sheet (matches the concept doc; map to GI-AI4AFS at the boot camp)
 
 | Endpoint | Purpose |
 |---|---|
 | `POST /farm/profile` | create/update farm (send `farm_id` to update; passing `soil` computes the soil index) |
 | `POST /soil/assessment` | classify 12 SHC-style parameters, return soil index + deficiencies |
-| `POST /plan/generate` | 3 multi-season plans + explanations; accepts `price_overrides` for scenarios |
-| `POST /plan/compare` | evaluate your own crop sequences against constraints |
+| `POST /plan/generate` | 3 multi-season plans + explanations + next-season fertilizer; accepts `price_overrides` for scenarios; stored as a plan version |
+| `POST /plan/compare` | evaluate your own crop sequences against season, water, budget, rotation and soil-floor rules |
 | `POST /residue/decision` | rank residue options (burn is always shown, never hidden) |
+| `POST /fertilizer/recommendation` | rule-based dose for a crop from a farm's (or supplied) soil test; always flagged `requires_expert_review` |
 | `POST /season/outcome` | record result; residue action updates soil state and advances the season |
 | `GET /farm/memory?farm_id=` | farm history: profile, plan versions, outcomes |
+
+Invalid input (unknown crop, bad soil values, unknown residue action, non-positive price) returns 422; unknown `farm_id` returns 404.
+If `API_KEY` is set in `.env`, send `X-API-Key: <value>` on every call except `/health` (Swagger has an Authorize button). Leave it empty on a local laptop demo.
+
+**How the planner behaves (for the pitch).** Plans: A maximises profit with a loose soil floor (30); B balances profit and soil and must end with soil index >= 52, with extra soil weight when the farm is below 50; C must improve the soil by >= 4 points. Rotation rules: no crop repeated back-to-back (including the previous crop), at most 2 consecutive cereal seasons and 1 oilseed/legume season (the previous crop counts). Crops that exceed the season's water (irrigation + effective rain when live data is on) or the season budget are excluded. In the scripted demo: the mustard price crash changes A and B, and recording a burn (soil -3) changes the balanced plan's next-season crop from mustard to chickpea.
 
 ## 5. Keys and accounts to obtain
 
@@ -79,7 +121,7 @@ Optional Postgres: `docker compose up -d db`, then set `DATABASE_URL=postgresql+
 | Bhashini credentials (ASR / translation / TTS) | register on the Bhashini portal (bhashini.gov.in) | Optional, for voice/local language |
 | Open-Meteo | none | No key needed |
 
-Set `USE_LIVE_DATA=true` only after testing; keep it `false` for the safest live demo.
+Set `USE_LIVE_DATA=true` only after testing; keep it `false` for the safest live demo. With it on, live failures fall back to defaults (retried after 5 min), so a dead network slows the first request by a few seconds but never breaks it.
 
 ## 6. Things to source from GitHub / other git bases / data portals
 
@@ -119,10 +161,11 @@ Before you vendor any repo, check its license and last-commit date. Prefer `uv a
 
 ## 7. Known gaps (be honest about these in the pitch)
 
-1. **All crop and residue numbers are placeholders.** Plans are illustrative until an agronomist validates them. Label demo data as simulated, as the doc requires.
-2. The demo currently shows only mild plan changes (wheat never wins, and the burn event shifts soil values more than crop choices). Tune `crops.yaml` with real figures so the price-crash and burn moments visibly change the plan.
-3. Fertilizer module not implemented. Weather is fetched but not yet wired into the water constraint.
-4. No auth, no Bhashini voice, and no pre-built UI pages. Only the typed API client is provided.
+1. **Crop yields, costs, water, soil deltas, risk, residue economics and fertilizer doses are placeholders.** Default prices are real Govt MSPs (kharif MS 2026-27; rabi RMS 2027-28, PIB 30 Sep 2026), but MSP is a floor, not a mandi forecast. Plans are illustrative until an agronomist validates them. Label demo data as simulated, as the doc requires.
+2. Planner weights (`PLANS` in `planner.py`) were tuned so the demo story moves; they are a planning policy, not agronomy. Retune if you change `crops.yaml`.
+3. Fertilizer module uses general RDFs x soil-class factor (low 1.25 / medium 1.0 / high 0.75), DAP-first product split. Replace with state package-of-practices / STCR equations. S, Fe, Cu, Mn, B deficiencies are flagged, not dosed. Fertilizer cost is already inside `cost_inr_per_acre`; the fertilizer endpoint's cost is indicative only.
+4. Weather -> water uses a 5-year mean seasonal rainfall x `effective_rain_fraction` (0.5, placeholder) added to irrigation water, only in live mode. The 7-day forecast only produces warnings.
+5. Auth is a single shared API key (optional) and there are no per-user accounts — any holder of the API key can read/write every farm. The DB is a shared Firestore project (or local SQLite), not multi-tenant. No Bhashini voice, and no pre-built UI pages. Only the typed API client is provided (`frontend_starter/lib/api.ts`; re-copy it into `frontend/src/lib/api.ts`).
 5. The Agmarknet resource id and commodity names in `market.py` / `crops.yaml` need checking against the live portal.
 
 ## 8. Troubleshooting
